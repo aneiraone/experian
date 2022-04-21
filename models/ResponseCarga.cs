@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-class ResponseCarga
+public class ResponseCarga
 {
+    public static readonly string statusOK = "OK";
     public ResponseCarga(string tipoDTE, string rut, string razon, int folio, string mensaje, JArray result = null)
     {
-        Status = "OK";
+        Status = statusOK;
         Value = new Tipo(tipoDTE, rut, razon, folio, mensaje, result);
     }
     public string Status { get; set; }
@@ -13,7 +14,7 @@ class ResponseCarga
 }
 
 #region "VALUE"
-class Tipo
+public class Tipo
 {
     public Tipo(string tipoDTE, string rut, string razon, int folio, string mensaje, JArray result)
     {
@@ -34,7 +35,7 @@ class Tipo
 #endregion
 
 #region "RESULT"
-class Result
+public class Result
 {
     public Result(string propiedad, string message, int value)
     {

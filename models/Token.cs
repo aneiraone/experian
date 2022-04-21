@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 
 public class Token
 {
@@ -7,10 +6,10 @@ public class Token
     {
     }
 
-    public Token(string tokenValue)
+    public Token(string tokenValue, double expiredTime = 30)
     {
         token = tokenValue;
-        expired = DateTime.Now.AddMinutes(Convert.ToDouble(ConfigurationManager.AppSettings.Get("TOKEN_TIME_MIN")));
+        expired = DateTime.Now.AddMinutes(expiredTime);
     }
     public string token { get; set; }
     public DateTime expired { get; set; }

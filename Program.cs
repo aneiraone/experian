@@ -1,16 +1,15 @@
-﻿using System;
-using System.Threading;
-
-namespace IntegracionDocumentos
+﻿namespace IntegracionDocumentos
 {
     internal class Program
     {
         static void Main(string[] args)
         {
+            Serilog.Core.Logger _log = Logger.GetInstance()._Logger;
             Process invoke = new Process();
-            Console.WriteLine(Constants.ConsoleMessage.START);
+
+            _log.Information(Constants.ConsoleMessage.START);
             invoke.Execute();
-            Console.WriteLine(Constants.ConsoleMessage.FINISH);
+            _log.Information(Constants.ConsoleMessage.FINISH);
             //Thread.Sleep(3000);
         }
     }

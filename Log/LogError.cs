@@ -4,7 +4,7 @@ using System.IO;
 
 class LogError : ILogError
 {
-    public static string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\log";
+    public static string path = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "log");
     public void Generar(object obj, Exception ex)
     {
         try
@@ -15,7 +15,7 @@ class LogError : ILogError
             }
             string name = GetNameFile();
 
-            using (StreamWriter sw = new StreamWriter(path + @"\" + name, true))
+            using (StreamWriter sw = new StreamWriter(Path.Combine(path, name), true))
             {
                 sw.WriteLine("Fecha: " + DateTime.Now.ToString("dd-MM-yyyy"));
                 sw.WriteLine("Hora: " + DateTime.Now.ToString("HH:mm:ss"));
@@ -28,13 +28,12 @@ class LogError : ILogError
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
-            Console.ReadKey();
         }
     }
 
     private string GetNameFile()
     {
-        string nombre = "log_" + DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day + ".txt";
+        string nombre = "error_" + DateTime.Now.ToString("yyyy_MM_dd") + ".log";
         return nombre;
     }
 }
