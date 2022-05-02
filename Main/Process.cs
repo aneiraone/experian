@@ -1,6 +1,7 @@
 ﻿using Common;
 using Common.BL;
 using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -54,12 +55,18 @@ class Process
                     int folio = int.Parse((string)item[validate._encabezado][validate._folio]);
                     SaveNewDocument(rut, int.Parse(dte), folio, JsonConvert.SerializeObject(item)); //ADD DOCUMENT DB
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    if (ex.InnerException is MySqlException)
+                    {
+                        ex = ex.InnerException; //TIME OUT MYSQL
+                    }
+                    _log.Error(ex.Message);
+                    //return;
                 }
             }
 
+            //OBTIENE LOS DOCUMENTOS PENDIENTES DESDE LA BASE
             List<Documento> _documents = _context.Documento.Where(d => d.Estado == Estado.Pendiente).OrderByDescending(d => d.FechaCreacion).ToList();
             foreach (Documento document in _documents)
             {
@@ -92,9 +99,14 @@ class Process
                         _logFile.Error(Formater(response));
                     }
                     UpdateDocument(document.Id, Estado.Enviado, JsonConvert.SerializeObject(response.Value.Result));
+                    //email.Send(response);
                 }
                 catch (Exception ex)
                 {
+                    if (ex.InnerException is MySqlException)
+                    {
+                        ex = ex.InnerException; //TIME OUT MYSQL
+                    }
                     #region "TIMEOUT"
                     bool timeOut = false;
                     if (ex.InnerException is HttpRequestException)
@@ -118,111 +130,18 @@ class Process
                     }
                     #endregion
                     _log.Error(Constants.ExceptionMessage.EXCEPTION + ex.Message);
+                    //email.Send((timeOut ? Constants.ExceptionMessage.TIMEOUT : Constants.ExceptionMessage.EXCEPTION + ex.Message);
                 }
             }
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_END);
 
-            //foreach (JObject item in data)
-            //{
-            //    try
-            //    {
-            //        validate.RequestDocument(item);
-
-            //        string dte = (string)item[validate._encabezado][validate._tipoDocumento];
-            //        string rut = (string)item[validate._encabezado][validate._receptor][validate._rut];
-            //        string razon = (string)item[validate._encabezado][validate._receptor][validate._razon];
-            //        int folio = int.Parse((string)item[validate._encabezado][validate._folio]);
-
-            //        int idDocumento = SaveNewDocument(rut, int.Parse(dte), folio, JsonConvert.SerializeObject(item)); //ADD DOCUMENT DB
-            //        ResponseCarga response = new ResponseCarga(dte, rut, razon, folio, string.Empty);
-            //        dynamic responseCarga = JsonConvert.DeserializeObject(wsServices.Carga(token, item));
-
-            //        validate.ResponseCarga(responseCarga);
-            //        response.Status = (string)responseCarga.Status;
-            //        if (response.Status == ResponseCarga.statusOK)
-            //        {
-            //            response.Value.Result.Add(new JObject { { "Message", cargaOK }, { "Property", cargaOK } });
-            //            _logFile.Information(Formater(response));
-            //        }
-            //        else
-            //        {
-            //            JArray result = responseCarga.Value.Result;
-            //            response.Value.Result = result;
-            //            _logFile.Error(Formater(response));
-            //        }
-            //        UpdateDocument(idDocumento, Estado.Enviado, JsonConvert.SerializeObject(response.Value.Result));
-            //        //email.Send(response);
-
-            //        //registro.Generar(Formater(response));
-
-            //        //try
-            //        //{
-
-
-
-
-            //        //}
-            //        //catch
-            //        //{
-            //        // HAY QUE REVISAR ESO
-
-
-            //        /* JObject value = responseCarga.Value; //json.Value.Result.ToString();
-            //         JToken propertyValue = value.Property("Result");
-            //         string mensajeLog = string.Empty;
-            //         string propertiesLog = string.Empty;
-
-            //         if (propertyValue.First.Type == JTokenType.Array)
-            //         {
-            //             JArray items = (JArray)propertyValue.First;
-            //             mensajeLog = items[0]["Message"].ToString();
-            //             propertiesLog = items[0]["Property"].ToString();
-            //         }
-            //         else
-            //         {
-            //             mensajeLog = value.Property("Result").Value.ToString();
-            //             propertiesLog = value.Property("Result").Value.ToString();
-            //         }
-            //        */
-            //        //    response.Value.Result[0].Message = mensajeLog;
-            //        //   response.Value.Result[0].Property = propertiesLog;
-            //        // }
-            //        //response.Status = responseCarga.Status;
-            //        //registro.Generar(Path.GetFileNameWithoutExtension(PathFile) + ExtensioLog, DirectoyInfo.LogDirectory, Formater(response));
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        // response.Status = "NOK";
-            //        // response.Value.Result.Add(new JObject { { "Message", ex.Message }, { "Property", ex.Message } });
-            //        #region "TIMEOUT"
-            //        bool timeOut = false;
-            //        if (ex.InnerException is HttpRequestException)
-            //        {
-            //            ex = ex.InnerException;
-            //            SocketError erro = ((System.Net.Sockets.SocketException)ex.GetBaseException()).SocketErrorCode;
-            //            if (erro == SocketError.TimedOut)
-            //            {
-            //                timeOut = true;
-            //            }
-            //        }
-
-            //        if (ex.InnerException is TaskCanceledException)
-            //        {
-            //            timeOut = true;
-            //        }
-
-            //        if (timeOut)
-            //        {
-            //            _log.Error(Constants.ExceptionMessage.TIMEOUT);
-            //        }
-            //        #endregion
-            //        _log.Error(Constants.ExceptionMessage.EXCEPTION + ex.Message);
-            //    }
-            //}
-
         }
         catch (Exception ex)
         {
+            if (ex.InnerException is MySqlException)
+            {
+                ex = ex.InnerException; //TIME OUT MYSQL
+            }
             #region "TIMEOUT"
             bool timeOut = false;
             if (ex.InnerException is HttpRequestException)
@@ -248,12 +167,11 @@ class Process
             _log.Error(ex.Message);
             //email.Send((timeOut ? Constants.ExceptionMessage.TIMEOUT : ex.Message);
         }
-
     }
 
     private string Formater(ResponseCarga response)
     {
-        return JsonConvert.SerializeObject(response);//JValue.Parse(JsonConvert.SerializeObject(response)).ToString(Formatting.Indented);
+        return JsonConvert.SerializeObject(response);
     }
 
     private void SaveNewDocument(string rut, int tipo, int folio, string data)
@@ -270,7 +188,6 @@ class Process
         };
         _context.Add(documento);
         _context.SaveChanges();
-        //return documento.Id;
     }
 
     private bool UpdateDocument(int id, Estado estado, string error)
