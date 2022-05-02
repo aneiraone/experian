@@ -1,29 +1,29 @@
-﻿using Newtonsoft.Json;
+﻿using Common;
+using Newtonsoft.Json;
 using System;
 using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using static Credentials;
 
 class ExperianServices
 {
     public Token GenerateToken()
     {
         HttpClient client = new HttpClient();
-        string stringPayload = JsonConvert.SerializeObject(new Credentials { GetToken = new ServicesToken { } });
+        string stringPayload = JsonConvert.SerializeObject(new Credentials { GetToken = new Credentials.ServicesToken { } });
         StringContent httpContent = new StringContent(stringPayload, Encoding.UTF8, Constants.ServiceRest.ContentType);
         httpContent.Headers.ContentType = new MediaTypeHeaderValue(Constants.ServiceRest.ContentType);
-
-        client.Timeout = TimeSpan.FromSeconds(30);
+        
+        client.Timeout = TimeSpan.FromSeconds(Parametros.GetInstance().TimeOut);
         //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL"));
-        using (var response = client.PostAsync(ConfigurationManager.AppSettings.Get("URL_TOKEN_EXPERIAN"), httpContent).Result)
+        using (var response = client.PostAsync(Parametros.GetInstance().URLTokenExperian, httpContent).Result)
         {
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 Exception ex = new Exception(response.StatusCode + " " + ((response.StatusCode == HttpStatusCode.NotFound) ? 
-                    Constants.ExceptionMessage.URLNOVALIDA + ConfigurationManager.AppSettings.Get("URL_TOKEN_EXPERIAN") : response.Content.ReadAsStringAsync().Result));
+                    Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLTokenExperian : response.Content.ReadAsStringAsync().Result));
                 throw ex;
             }
 
@@ -39,15 +39,15 @@ class ExperianServices
         httpContent.Headers.ContentType = new MediaTypeHeaderValue(Constants.ServiceRest.ContentType);
 
         HttpClient client = new HttpClient();
-        client.Timeout = TimeSpan.FromSeconds(60);
+        client.Timeout = TimeSpan.FromSeconds(Parametros.GetInstance().TimeOut);
         //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resp.token);
         //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL"));
-        using (var response = client.PostAsync(ConfigurationManager.AppSettings.Get("URL_DATA"), httpContent).Result)
+        using (var response = client.PostAsync(Parametros.GetInstance().URLData, httpContent).Result)
         {
             if (response.StatusCode != HttpStatusCode.OK)
             { 
                 return (response.StatusCode == HttpStatusCode.NotFound) ?
-                    Constants.ExceptionMessage.URLNOVALIDA + ConfigurationManager.AppSettings.Get("URL_DATA") : response.Content.ReadAsStringAsync().Result;
+                    Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLData : response.Content.ReadAsStringAsync().Result;
             }
             return response.Content.ReadAsStringAsync().Result;
         }
@@ -55,7 +55,6 @@ class ExperianServices
 
     private Token SetToken(string ObjResponse)
     {
-        return new Token(JsonConvert.DeserializeObject<ResponseServicesToken>(ObjResponse).Token);
+        return new Token(JsonConvert.DeserializeObject<Credentials.ResponseServicesToken>(ObjResponse).Token);
     }
 }
-

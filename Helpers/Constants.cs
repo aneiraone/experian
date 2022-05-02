@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-class Constants
+﻿class Constants
 {
     public class ConsoleMessage
     {
@@ -17,8 +11,8 @@ class Constants
 
     public class ServiceRest
     {
-        public const string URL_TOKEN = "dbnetJwt/Login/getToken";
-        public const string URL_CARGA = "/wsscargaDte/api/CargaDte";
+      //  public const string URL_TOKEN = "dbnetJwt/Login/getToken";
+      //  public const string URL_CARGA = "/wsscargaDte/api/CargaDte";
         public const string ContentType = "application/json";
     }
 
@@ -29,5 +23,3 @@ class Constants
         public const string URLNOVALIDA = "Error 404 No se pudo retornar respuesta de la url solicitada ";
     }
 }
-
-

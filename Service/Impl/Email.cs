@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Common;
+using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Mail;
 
@@ -10,7 +11,7 @@ public class Email: IEmail
     readonly static string _subject_error = "Error";
     public bool Send(ResponseCarga data)
     {
-        string body = AppSettings.GetInstance().Email.Template[0].BodyOK;
+        string body = AppSettings.GetInstance().Email.Template[0].Body;
         string subject = AppSettings.GetInstance().Email.Template[0].Subject;
 
         if (data.Status == ResponseCarga.statusOK)
@@ -29,7 +30,7 @@ public class Email: IEmail
 
     public bool Send(string mensaje)
     {
-        string body = AppSettings.GetInstance().Email.Template[1].BodyError;
+        string body = AppSettings.GetInstance().Email.Template[1].Body;
         string subject = AppSettings.GetInstance().Email.Template[1].Subject;
         body = string.Format(body, mensaje);
         return Send(AppSettings.GetInstance().Email.Smtp.From, AppSettings.GetInstance().Email.Smtp.To, subject, body);
