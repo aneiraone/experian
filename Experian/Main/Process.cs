@@ -29,7 +29,8 @@ class Process
 
             #region "BIND PARAMETERS"
             List<Parametro> _unSetParam = _context.Parametro.Where(d => d.Activo == true).ToList();
-            Parametros parametros = new Parametros(_unSetParam);
+            Parametros parametros = Parametros.GetInstance();
+            parametros.LoadParametros(_unSetParam);
             #endregion
 
             ExperianServices experianServices = new ExperianServices();
@@ -101,7 +102,7 @@ class Process
                         _logFile.Error(Formater(response));
                     }
                     UpdateDocument(document.Id, estado, JsonConvert.SerializeObject(response.Value.Result));
-                    email.Send(response);
+                    //email.Send(response);
                 }
                 catch (Exception ex)
                 {
@@ -132,7 +133,7 @@ class Process
                     }
                     #endregion
                     _log.Error(Constants.ExceptionMessage.EXCEPTION + ex.Message);
-                    email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : Constants.ExceptionMessage.EXCEPTION + ex.Message);
+                   // email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : Constants.ExceptionMessage.EXCEPTION + ex.Message);
                 }
             }
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_END);
@@ -167,7 +168,7 @@ class Process
             }
             #endregion  
             _log.Error(ex.Message);
-            email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : ex.Message);
+           // email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : ex.Message);
         }
     }
 

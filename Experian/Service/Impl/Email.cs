@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 
 public class Email: IEmail
 {
@@ -38,20 +39,33 @@ public class Email: IEmail
 
     private string TableResult(JArray result)
     {
-        string table = "<table><thead><tr><th>Detalle</th></tr></thead><tbody>";
+        StringBuilder sb = new StringBuilder();
+        sb.Append("<table><thead><tr><th>Property</th><th>Message</th></tr></thead>");
+        sb.Append("<tbody>");
         foreach (JObject item in result)
         {
-            // item[]
+            sb.Append("<tr>");
+            if (item.ContainsKey("Property"))
+            {
+                sb.Append(string.Format("<td>{0}</td>", (string)item["Property"]));
+            }
+            if (item.ContainsKey("Message")) {
+                sb.Append(string.Format("<td>{0}</td>", (string)item["Message"]));
+            }
+            sb.Append("</tr>");
         }
-
-
-        return table;
+        sb.Append("</tbody>");
+        return sb.ToString();
     }
 
     #region "CONFIG EMAIL"
     private bool Send(string from, string _to, string subject, string body) {
         SmtpClient smtpClient = Config;
-        smtpClient.Send(from, _to, subject, body);
+        MailMessage message = new MailMessage(from, _to);
+        message.Subject = subject;
+        message.IsBodyHtml = true;
+        message.Body = body;
+        smtpClient.Send(message);
         return true;
     }
 

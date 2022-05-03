@@ -46,7 +46,7 @@ public class Validate : IValidate
             throw new InvalidRequestException(_receptor);
         }
 
-        JObject receptor = (JObject)request[_receptor];
+        JObject receptor = (JObject)item[_receptor];
         if (!receptor.ContainsKey(_rut))
         {
             throw new InvalidRequestException(_rut);

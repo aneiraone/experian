@@ -30,6 +30,7 @@ namespace Common
 
         private readonly string InvalidArgument = " Invalid Arguments Parametros {0}";
 
+        public Parametros() { }
         private static Parametros _instance;
         public static Parametros GetInstance()
         {
@@ -39,8 +40,21 @@ namespace Common
             }
             return _instance;
         }
-        public Parametros(){}
-        public Parametros(List<Parametro> parametros)
+
+        public int TimeOut { get; set; }
+        public string URLData { get; set; }
+        public string URLTokenExperian { get; set; }
+        public string TokenNameExperian { get; set; }
+        public string TokenPassExperian { get; set; }
+        public string ClientIdExperian { get; set; }
+        public string ClientSecretExperian { get; set; }
+        public string URLCarga { get; set; }
+        public string URLTokenApi2020 { get; set; }
+        public string IdentificadorEmpresa { get; set; }
+        public string UsuarioEmpresa { get; set; }
+        public string AutorizacionEmpresa { get; set; }
+
+        public void LoadParametros(List<Parametro> parametros)
         {
             if (!parametros.Exists(x => x.Llave == _token))
             {
@@ -135,7 +149,7 @@ namespace Common
             URLData = parametros.Find(x => x.Llave == _urlData).Valor;
 
             URLCarga = parametros.Find(x => x.Llave == _urlCarga).Valor;
-            URLTokenApi2020 = parametros.Find(x => x.Llave == _token).Valor;
+            URLTokenApi2020 = parametros.Find(x => x.Llave == _urlToken).Valor;
             IdentificadorEmpresa = parametros.Find(x => x.Llave == _identificadorEmpresa).Valor;
             UsuarioEmpresa = parametros.Find(x => x.Llave == _usuarioEmpresa).Valor;
             AutorizacionEmpresa = parametros.Find(x => x.Llave == _autorizacionEmpresa).Valor;
@@ -173,18 +187,6 @@ namespace Common
             AppSettings.GetInstance().Email.Smtp.To = EmailTo;
             AppSettings.GetInstance().Email.Smtp.From = EmailUser;
         }
-        public int TimeOut { get; set; }
-        public string URLData { get; set; }
-        public string URLTokenExperian { get; set; }
-        public string TokenNameExperian { get; set; }
-        public string TokenPassExperian { get; set; }
-        public string ClientIdExperian { get; set; }
-        public string ClientSecretExperian { get; set; }
-        public string URLCarga { get; set; }
-        public string URLTokenApi2020 { get; set; }
-        public string IdentificadorEmpresa { get; set; }
-        public string UsuarioEmpresa { get; set; }
-        public string AutorizacionEmpresa { get; set; }
 
         private bool Validate(IDictionary<string, string> values)
         {
