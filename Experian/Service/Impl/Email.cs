@@ -38,7 +38,7 @@ public class Email: IEmail
 
     private string TableResult(JArray result)
     {
-        string table = "";
+        string table = "<table><thead><tr><th>Detalle</th></tr></thead><tbody>";
         foreach (JObject item in result)
         {
             // item[]
@@ -61,9 +61,9 @@ public class Email: IEmail
         {
             return new SmtpClient(AppSettings.GetInstance().Email.Smtp.Host)
             {
-                Port = 587,
+                Port = AppSettings.GetInstance().Email.Smtp.Port,
                 Credentials = new NetworkCredential(AppSettings.GetInstance().Email.Smtp.UserName, AppSettings.GetInstance().Email.Smtp.Password),
-                EnableSsl = true,
+                //EnableSsl = true,
             };
         }
     }

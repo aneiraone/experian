@@ -23,12 +23,12 @@ namespace Common
         private readonly string _identificadorEmpresa = "IdentificadorEmpresa";
 
         private readonly string _emailHost = "EMAIL_SMTP";
-        private readonly string _emailName = "EMAIL_TO";
+        private readonly string _emailName = "EMAIL_FROM";
         private readonly string _emailPass = "EMAIL_PASS";
         private readonly string _emailPort = "EMAIL_PORT";
-        private readonly string _emailFrom = "EMAIL_FROM";
+        private readonly string _emailTo = "EMAIL_TO";
 
-        private readonly string InvalidArgument = " Invalid Arguments {0}";
+        private readonly string InvalidArgument = " Invalid Arguments Parametros {0}";
 
         private static Parametros _instance;
         public static Parametros GetInstance()
@@ -118,9 +118,9 @@ namespace Common
             {
                 throw new ArgumentException(string.Format(InvalidArgument, _emailPort));
             }
-            if (!parametros.Exists(x => x.Llave == _emailFrom))
+            if (!parametros.Exists(x => x.Llave == _emailTo))
             {
-                throw new ArgumentException(string.Format(InvalidArgument, _emailFrom));
+                throw new ArgumentException(string.Format(InvalidArgument, _emailTo));
             }
 
             string _timeOut = parametros.Find(x => x.Llave == _token).Valor;
@@ -146,7 +146,7 @@ namespace Common
             string _port = parametros.Find(x => x.Llave == _emailPort).Valor;
             int EmailPort = int.Parse(_port);
             if (EmailPort == 0) { EmailPort = 25; }
-            List<Parametro> listEmail = parametros.FindAll(x => x.Llave == _emailFrom);
+            List<Parametro> listEmail = parametros.FindAll(x => x.Llave == _emailTo);
             IDictionary<string, string> fields = new Dictionary<string, string>() {
                 { _urlData, URLData },
                 { _nameExperian, TokenNameExperian},
@@ -165,13 +165,13 @@ namespace Common
             Validate(fields);
             ValidateEmail(listEmail);
 
-            string EmailFrom = string.Join("; ", listEmail.Select(c => c.Valor).ToArray());
+            string EmailTo = string.Join("; ", listEmail.Select(c => c.Valor).ToArray());
             AppSettings.GetInstance().Email.Smtp.Host = EmailHost;
             AppSettings.GetInstance().Email.Smtp.Port = EmailPort;
             AppSettings.GetInstance().Email.Smtp.UserName = EmailUser;
             AppSettings.GetInstance().Email.Smtp.Password = EmailPass;
-            AppSettings.GetInstance().Email.Smtp.To = EmailUser;
-            AppSettings.GetInstance().Email.Smtp.From = EmailFrom;
+            AppSettings.GetInstance().Email.Smtp.To = EmailTo;
+            AppSettings.GetInstance().Email.Smtp.From = EmailUser;
         }
         public int TimeOut { get; set; }
         public string URLData { get; set; }
