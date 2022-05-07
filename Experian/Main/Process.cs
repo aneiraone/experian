@@ -1,12 +1,12 @@
 ﻿using Common;
 using Common.BL;
+using ExperianCore;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -15,7 +15,9 @@ class Process
 {
     private Email email = new Email();
     private Serilog.Core.Logger _log = Logger.GetInstance()._Logger;
-    private ExperianCore.ExperianDBContext _context = new ExperianCore.ExperianDBContext();
+    private DocumentoService documentsService = new DocumentoService();
+    private ParametroService parametersService = new ParametroService();
+
     private Validate validate = new Validate();
 
     private readonly string cargaOK = "Carga exitosa";
@@ -28,17 +30,17 @@ class Process
             config.Bind("AppSettings", appSettings);
 
             #region "BIND PARAMETERS"
-            List<Parametro> _unSetParam = _context.Parametro.Where(d => d.Activo == true).ToList();
+            List<Parametro> _unSetParam = parametersService.Get();
             Parametros parametros = Parametros.GetInstance();
             parametros.LoadParametros(_unSetParam);
             #endregion
 
             ExperianServices experianServices = new ExperianServices();
+            Token tokenExperian = experianServices.GenerateToken();
             string resp = experianServices.Data();
             dynamic jsonResp = JsonConvert.DeserializeObject(resp);
             validate.ResponseData(jsonResp);
             JArray data = jsonResp[validate.payload];
-
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_START);
             foreach (JObject item in data)
             {
@@ -49,7 +51,7 @@ class Process
                     string rut = (string)item[validate._encabezado][validate._receptor][validate._rut];
                     string razon = (string)item[validate._encabezado][validate._receptor][validate._razon];
                     int folio = int.Parse((string)item[validate._encabezado][validate._folio]);
-                    SaveNewDocument(rut, razon, int.Parse(dte), folio, JsonConvert.SerializeObject(item)); //ADD DOCUMENT DB
+                    documentsService.Save(rut, razon, int.Parse(dte), folio, JsonConvert.SerializeObject(item));// ADD DOCUMENT DB
                 }
                 catch (Exception ex)
                 {
@@ -62,78 +64,86 @@ class Process
                 }
             }
 
-            JWTServices wsServices = new JWTServices();
+            API2020Services wsServices = new API2020Services();
             Token token = wsServices.GenerateToken();
 
             Serilog.Core.Logger _logFile = Logger.GetInstance()._LoggerFile;
             //OBTIENE LOS DOCUMENTOS PENDIENTES DESDE LA BASE
-            List<Documento> _documents = _context.Documento.Where(d => d.Estado == Estado.Pendiente).OrderByDescending(d => d.FechaCreacion).ToList();
-            foreach (Documento document in _documents)
+            List<Documento> _documents = documentsService.GetPendientes();
+            if (_documents.Count == 0)
             {
-                try
+                _log.Information(Constants.ConsoleMessage.SIN_DATA);
+                email.Send(string.Empty, false);
+            }
+            else
+            {
+                foreach (Documento document in _documents)
                 {
-                    // RENUEVA TOKEN SI EXPIRO
-                    if (!token.ValidateToken(token))
-                    { token = wsServices.GenerateToken(); }
+                    try
+                    {
+                        // RENUEVA TOKEN SI EXPIRO
+                        if (!token.ValidateToken(token))
+                        { token = wsServices.GenerateToken(); }
 
-                    ResponseCarga response = new ResponseCarga(
-                        document.TipoDocumento.ToString(),
-                        document.Rut,
-                        document.Razon,
-                        document.Folio,
-                        string.Empty
-                    );
-                    JObject request = JObject.Parse(document.Data);
-                    dynamic responseCarga = JsonConvert.DeserializeObject(wsServices.Carga(token, request));
-                    validate.ResponseCarga(responseCarga);
-                    response.Status = (string)responseCarga.Status;
-                    Estado estado = document.Estado;
-                    if (response.Status == ResponseCarga.statusOK)
-                    {
-                        estado = Estado.EnviadoOK;
-                        response.Value.Result.Add(new JObject { { "Message", cargaOK }, { "Property", cargaOK } });
-                        _logFile.Information(Formater(response));
+                        ResponseCarga response = new ResponseCarga(
+                            document.TipoDocumento.ToString(),
+                            document.Rut,
+                            document.Razon,
+                            document.Folio,
+                            string.Empty
+                        );
+                        JObject request = JObject.Parse(document.Data);
+                        dynamic responseCarga = JsonConvert.DeserializeObject(wsServices.Carga(token, request));
+                        validate.ResponseCarga(responseCarga);
+                        response.Status = (string)responseCarga.Status;
+                        Estado estado = document.Estado;
+                        if (response.Status == ResponseCarga.statusOK)
+                        {
+                            estado = Estado.EnviadoOK;
+                            response.Value.Result.Add(new JObject { { "Message", cargaOK }, { "Property", cargaOK } });
+                            _logFile.Information(Formater(response));
+                        }
+                        else
+                        {
+                            estado = Estado.EnviadoConError;
+                            JArray result = responseCarga.Value.Result;
+                            response.Value.Result = result;
+                            _logFile.Error(Formater(response));
+                        }
+                        documentsService.Update(document.Id, estado, JsonConvert.SerializeObject(response.Value.Result));
+                        email.Send(response);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        estado = Estado.EnviadoConError;
-                        JArray result = responseCarga.Value.Result;
-                        response.Value.Result = result;
-                        _logFile.Error(Formater(response));
-                    }
-                    UpdateDocument(document.Id, estado, JsonConvert.SerializeObject(response.Value.Result));
-                    //email.Send(response);
-                }
-                catch (Exception ex)
-                {
-                    if (ex.InnerException is MySqlException)
-                    {
-                        ex = ex.InnerException; //TIME OUT MYSQL
-                    }
-                    #region "TIMEOUT"
-                    bool timeOut = false;
-                    if (ex.InnerException is HttpRequestException)
-                    {
-                        ex = ex.InnerException;
-                        SocketError erro = ((System.Net.Sockets.SocketException)ex.GetBaseException()).SocketErrorCode;
-                        if (erro == SocketError.TimedOut)
+                        if (ex.InnerException is MySqlException)
+                        {
+                            ex = ex.InnerException; //TIME OUT MYSQL
+                        }
+                        #region "TIMEOUT"
+                        bool timeOut = false;
+                        if (ex.InnerException is HttpRequestException)
+                        {
+                            ex = ex.InnerException;
+                            SocketError erro = ((System.Net.Sockets.SocketException)ex.GetBaseException()).SocketErrorCode;
+                            if (erro == SocketError.TimedOut)
+                            {
+                                timeOut = true;
+                            }
+                        }
+
+                        if (ex.InnerException is TaskCanceledException)
                         {
                             timeOut = true;
                         }
-                    }
 
-                    if (ex.InnerException is TaskCanceledException)
-                    {
-                        timeOut = true;
+                        if (timeOut)
+                        {
+                            _log.Error(Constants.ExceptionMessage.TIMEOUT);
+                        }
+                        #endregion
+                        _log.Error(Constants.ExceptionMessage.EXCEPTION + ex.Message);
+                        email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : Constants.ExceptionMessage.EXCEPTION + ex.Message, true);
                     }
-
-                    if (timeOut)
-                    {
-                        _log.Error(Constants.ExceptionMessage.TIMEOUT);
-                    }
-                    #endregion
-                    _log.Error(Constants.ExceptionMessage.EXCEPTION + ex.Message);
-                   // email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : Constants.ExceptionMessage.EXCEPTION + ex.Message);
                 }
             }
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_END);
@@ -168,39 +178,12 @@ class Process
             }
             #endregion  
             _log.Error(ex.Message);
-           // email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : ex.Message);
+            email.Send(timeOut ? Constants.ExceptionMessage.TIMEOUT : ex.Message, true);
         }
     }
 
     private string Formater(ResponseCarga response)
     {
         return JsonConvert.SerializeObject(response);
-    }
-
-    private void SaveNewDocument(string rut, string razon, int tipo, int folio, string data)
-    {
-        Documento documento = new Documento()
-        {
-            Rut = rut,
-            TipoDocumento = tipo,
-            Folio = folio,
-            Razon = razon,
-            FechaCreacion = DateTime.Now,
-            FechaModificacion = DateTime.Now,
-            Estado = Estado.Pendiente,
-            Data = data
-        };
-        _context.Add(documento);
-        _context.SaveChanges();
-    }
-
-    private bool UpdateDocument(int id, Estado estado, string error)
-    {
-        Documento documento = _context.Documento.First(x => x.Id == id);
-        documento.FechaModificacion = DateTime.Now;
-        documento.Estado = estado;
-        documento.Error = error;
-        _context.SaveChanges();
-        return true;
     }
 }

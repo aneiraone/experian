@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 public class Validate : IValidate
 {
@@ -15,7 +12,7 @@ public class Validate : IValidate
 
     public readonly string payload = "payload";
     public readonly string status = "Status";
-    
+
     public bool ResponseData(dynamic response)
     {
         if (!response.ContainsKey(payload))
@@ -33,7 +30,7 @@ public class Validate : IValidate
         }
         return true;
     }
-    
+
     public bool RequestDocument(JObject request)
     {
         if (!request.ContainsKey(_encabezado))
@@ -60,7 +57,7 @@ public class Validate : IValidate
         {
             throw new InvalidRequestException(_tipoDocumento);
         }
-      
+
         if (!item.ContainsKey(_folio))
         {
             throw new InvalidRequestException(_folio);

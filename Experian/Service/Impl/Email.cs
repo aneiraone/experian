@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 
-public class Email: IEmail
+public class Email : IEmail
 {
     readonly static string _process_ok = "correctamente";
     readonly static string _process_error = "con errores";
@@ -12,6 +12,7 @@ public class Email: IEmail
     readonly static string _subject_error = "Error";
     public bool Send(ResponseCarga data)
     {
+        if (!AppSettings.GetInstance().Email.Smtp.Active) { return false; }//no manda correo si no carga base
         string body = AppSettings.GetInstance().Email.Template[0].Body;
         string subject = AppSettings.GetInstance().Email.Template[0].Subject;
 
@@ -29,10 +30,11 @@ public class Email: IEmail
         return Send(AppSettings.GetInstance().Email.Smtp.From, AppSettings.GetInstance().Email.Smtp.To, subject, body);
     }
 
-    public bool Send(string mensaje)
+    public bool Send(string mensaje, bool error)
     {
-        string body = AppSettings.GetInstance().Email.Template[1].Body;
-        string subject = AppSettings.GetInstance().Email.Template[1].Subject;
+        if (!AppSettings.GetInstance().Email.Smtp.Active) { return false; }//no manda correo si no carga base
+        string body = AppSettings.GetInstance().Email.Template[error ? 1 : 2].Body;
+        string subject = AppSettings.GetInstance().Email.Template[error ? 1 : 2].Subject;
         body = string.Format(body, mensaje);
         return Send(AppSettings.GetInstance().Email.Smtp.From, AppSettings.GetInstance().Email.Smtp.To, subject, body);
     }
@@ -40,7 +42,7 @@ public class Email: IEmail
     private string TableResult(JArray result)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("<table><thead><tr><th>Property</th><th>Message</th></tr></thead>");
+        sb.Append(AppSettings.GetInstance().Email.Template[0].Table);
         sb.Append("<tbody>");
         foreach (JObject item in result)
         {
@@ -49,8 +51,17 @@ public class Email: IEmail
             {
                 sb.Append(string.Format("<td>{0}</td>", (string)item["Property"]));
             }
-            if (item.ContainsKey("Message")) {
+            else
+            {
+                sb.Append(string.Format("<td>{0}</td>", string.Empty));
+            }
+            if (item.ContainsKey("Message"))
+            {
                 sb.Append(string.Format("<td>{0}</td>", (string)item["Message"]));
+            }
+            else
+            {
+                sb.Append(string.Format("<td>{0}</td>", string.Empty));
             }
             sb.Append("</tr>");
         }
@@ -59,7 +70,8 @@ public class Email: IEmail
     }
 
     #region "CONFIG EMAIL"
-    private bool Send(string from, string _to, string subject, string body) {
+    private bool Send(string from, string _to, string subject, string body)
+    {
         SmtpClient smtpClient = Config;
         MailMessage message = new MailMessage(from, _to);
         message.Subject = subject;

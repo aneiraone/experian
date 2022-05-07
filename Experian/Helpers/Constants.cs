@@ -6,17 +6,16 @@
         public const string FINISH = "Finalizando Proceso";
         public const string ARCHIVOS_START = "Procesando Archivos Inicio...";
         public const string ARCHIVOS_END = "Procesando Archivos Fin...";
-        public const string SIN_DATA = "Directorio IN sin Archivos";
+        public const string SIN_DATA = "No hay documentos para procesar";
     }
 
     public class ServiceRest
     {
-      //  public const string URL_TOKEN = "dbnetJwt/Login/getToken";
-      //  public const string URL_CARGA = "/wsscargaDte/api/CargaDte";
         public const string ContentType = "application/json";
     }
 
-    public class ExceptionMessage {
+    public class ExceptionMessage
+    {
         public const string DIRECTORIO_EMPTY = "No se cargo uno de los Directorios";
         public const string EXCEPTION = "Procesando Archivos Error: ";
         public const string TIMEOUT = "TIMEOUT, Se cumplio el tiempo de espera para el servicio";

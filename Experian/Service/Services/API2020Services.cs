@@ -7,8 +7,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 
-class JWTServices
+class API2020Services
 {
+    private readonly string _token = "Token";
     public Token GenerateToken()
     {
         HttpClient client = new HttpClient();
@@ -22,7 +23,7 @@ class JWTServices
         {
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                Exception ex = new Exception(response.StatusCode + " " + ((response.StatusCode == HttpStatusCode.NotFound) ? 
+                Exception ex = new Exception(response.StatusCode + " " + ((response.StatusCode == HttpStatusCode.NotFound) ?
                     Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLTokenApi2020 : response.Content.ReadAsStringAsync().Result));
                 throw ex;
             }
@@ -45,7 +46,7 @@ class JWTServices
         using (var response = client.PostAsync(Parametros.GetInstance().URLCarga, httpContent).Result)
         {
             if (response.StatusCode != HttpStatusCode.OK)
-            { 
+            {
                 return (response.StatusCode == HttpStatusCode.NotFound) ?
                     Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLCarga : response.Content.ReadAsStringAsync().Result;
             }
@@ -55,7 +56,13 @@ class JWTServices
 
     private Token SetToken(string ObjResponse)
     {
-        return new Token(JsonConvert.DeserializeObject<Credentials.ResponseServicesToken>(ObjResponse).Token);
+        dynamic tokenJson = JsonConvert.DeserializeObject(ObjResponse);
+        if (!tokenJson.ContainsKey(_token))
+        {
+            throw new InvalidRequestTokenException(string.Format("{0} {1}",_token, this.GetType().Name));
+        }
+        string token = (string)tokenJson[_token];
+        return new Token(token);
     }
 }
 

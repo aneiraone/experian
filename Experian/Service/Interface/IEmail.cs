@@ -3,5 +3,5 @@
 interface IEmail
 {
     bool Send(ResponseCarga data);
-    public bool Send(string mensaje);
+    public bool Send(string mensaje, bool error);
 }

@@ -1,6 +1,5 @@
 ﻿using Common.BL;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
@@ -31,15 +30,6 @@ namespace ExperianCore
                   .Build();
                 var connectionString = configuration.GetConnectionString("DatabaseConnection");
                 optionsBuilder.UseMySql(connectionString);
-
-                //IConfigurationRoot configuration = new ConfigurationBuilder()
-                // .SetBasePath(Directory.GetCurrentDirectory())
-                // .AddJsonFile(@Directory.GetCurrentDirectory() + "/../Experian/appsettings.json")
-                // .Build();
-                //var builder = new DbContextOptionsBuilder<ExperianDBContext>();
-                //var connectionString = configuration.GetConnectionString("DatabaseConnection");
-                //builder.UseMySql(connectionString);
-
             }
         }
 
@@ -47,19 +37,4 @@ namespace ExperianCore
         public virtual DbSet<Documento> Documento { get; set; }
         public virtual DbSet<Parametro> Parametro { get; set; }
     }
-
-    //public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ExperianDBContext>
-    //{
-    //    public ExperianDBContext CreateDbContext(string[] args)
-    //    {
-    //        IConfigurationRoot configuration = new ConfigurationBuilder()
-    //            .SetBasePath(Directory.GetCurrentDirectory())
-    //            .AddJsonFile(@Directory.GetCurrentDirectory() + "/../Experian/appsettings.json")
-    //            .Build();
-    //        var builder = new DbContextOptionsBuilder<ExperianDBContext>();
-    //        var connectionString = configuration.GetConnectionString("DatabaseConnection");
-    //        builder.UseMySql(connectionString);
-    //        return new ExperianDBContext(builder.Options);
-    //    }
-    //}
 }

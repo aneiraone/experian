@@ -1,15 +1,15 @@
 ﻿using Common.BL;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.ComponentModel.DataAnnotations;
 
 namespace Common
 {
     public class Parametros
     {
-        private readonly string _token = "TOKEN_TIME_MIN";
+        private readonly string _timeOut = "TIME_OUT";
         private readonly string _urlTokenExperian = "URL_TOKEN_EXPERIAN";
         private readonly string _urlData = "URL_DATA";
         private readonly string _nameExperian = "TOKEN_USER_EXPERIAN";
@@ -56,9 +56,9 @@ namespace Common
 
         public void LoadParametros(List<Parametro> parametros)
         {
-            if (!parametros.Exists(x => x.Llave == _token))
+            if (!parametros.Exists(x => x.Llave == _timeOut))
             {
-                throw new ArgumentException(string.Format(InvalidArgument, _token));
+                throw new ArgumentException(string.Format(InvalidArgument, _timeOut));
             }
 
             if (!parametros.Exists(x => x.Llave == _urlToken))
@@ -137,8 +137,7 @@ namespace Common
                 throw new ArgumentException(string.Format(InvalidArgument, _emailTo));
             }
 
-            string _timeOut = parametros.Find(x => x.Llave == _token).Valor;
-            TimeOut = int.Parse(_timeOut);
+            TimeOut = int.Parse(parametros.Find(x => x.Llave == _timeOut).Valor);
             if (TimeOut == 0) { TimeOut = 30; } //DEFAULT VALUE  30 seconds
 
             URLTokenExperian = parametros.Find(x => x.Llave == _urlTokenExperian).Valor;
@@ -179,7 +178,7 @@ namespace Common
             Validate(fields);
             ValidateEmail(listEmail);
 
-            string EmailTo = string.Join("; ", listEmail.Select(c => c.Valor).ToArray());
+            string EmailTo = string.Join(",", listEmail.Select(c => c.Valor).ToArray());
             AppSettings.GetInstance().Email.Smtp.Host = EmailHost;
             AppSettings.GetInstance().Email.Smtp.Port = EmailPort;
             AppSettings.GetInstance().Email.Smtp.UserName = EmailUser;
