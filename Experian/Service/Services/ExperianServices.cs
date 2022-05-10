@@ -36,18 +36,16 @@ public class ExperianServices
         }
     }
 
-    public string Data()//(Token resp, string json)
+    public string Data(Token resp)//(, string json)
     {
-        StringContent httpContent = new StringContent("{}", Encoding.UTF8, Constants.ServiceRest.ContentType);
-        httpContent.Headers.ContentType = new MediaTypeHeaderValue(Constants.ServiceRest.ContentType);
-
         HttpClient client = new HttpClient();
         client.Timeout = TimeSpan.FromSeconds(Parametros.GetInstance().TimeOut);
-        //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resp.token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resp.token);
         //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL"));
         string url = "https://uat-uk-api.experian.com/eitsgcss/oracletodbnet/v1/transactions";
         //url = Parametros.GetInstance().URLData;
-        using (var response = client.PostAsync(Parametros.GetInstance().URLData, httpContent).Result)
+      
+        using (var response = client.GetAsync(url).Result)
         {
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -57,6 +55,29 @@ public class ExperianServices
             return response.Content.ReadAsStringAsync().Result;
         }
     }
+
+
+    //public string Data()//(Token resp, string json)
+    //{
+    //    StringContent httpContent = new StringContent("{}", Encoding.UTF8, Constants.ServiceRest.ContentType);
+    //    httpContent.Headers.ContentType = new MediaTypeHeaderValue(Constants.ServiceRest.ContentType);
+
+    //    HttpClient client = new HttpClient();
+    //    client.Timeout = TimeSpan.FromSeconds(Parametros.GetInstance().TimeOut);
+    //    //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resp.token);
+    //    //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL"));
+    //    string url = "https://uat-uk-api.experian.com/eitsgcss/oracletodbnet/v1/transactions";
+    //    //url = Parametros.GetInstance().URLData;
+    //    using (var response = client.PostAsync(Parametros.GetInstance().URLData, httpContent).Result)
+    //    {
+    //        if (response.StatusCode != HttpStatusCode.OK)
+    //        {
+    //            return (response.StatusCode == HttpStatusCode.NotFound) ?
+    //                Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLData : response.Content.ReadAsStringAsync().Result;
+    //        }
+    //        return response.Content.ReadAsStringAsync().Result;
+    //    }
+    //}
 
     private Token SetToken(string response)
     {

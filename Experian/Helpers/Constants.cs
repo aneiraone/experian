@@ -7,6 +7,7 @@
         public const string ARCHIVOS_START = "Procesando Archivos Inicio...";
         public const string ARCHIVOS_END = "Procesando Archivos Fin...";
         public const string SIN_DATA = "No hay documentos para procesar";
+        public const string PROCESAR_DOCUMENTOS = "Existen {0} Documentos para procesar";
     }
 
     public class ServiceRest

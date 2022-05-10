@@ -37,8 +37,7 @@ class Process
 
             ExperianServices experianServices = new ExperianServices();
             Token tokenExperian = experianServices.GenerateToken();
-            string resp = experianServices.Data();
-            dynamic jsonResp = JsonConvert.DeserializeObject(resp);
+            dynamic jsonResp = JsonConvert.DeserializeObject(experianServices.Data(tokenExperian));
             validate.ResponseData(jsonResp);
             JArray data = jsonResp[validate.payload];
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_START);
@@ -47,10 +46,10 @@ class Process
                 try
                 {
                     validate.RequestDocument(item);
-                    string dte = (string)item[validate._encabezado][validate._tipoDocumento];
-                    string rut = (string)item[validate._encabezado][validate._receptor][validate._rut];
-                    string razon = (string)item[validate._encabezado][validate._receptor][validate._razon];
-                    int folio = int.Parse((string)item[validate._encabezado][validate._folio]);
+                    string dte = (string)item[validate._documento][validate._encabezado][validate._tipoDocumento];
+                    string rut = (string)item[validate._documento][validate._encabezado][validate._receptor][validate._rut];
+                    string razon = (string)item[validate._documento][validate._encabezado][validate._receptor][validate._razon];
+                    int folio = int.Parse((string)item[validate._documento][validate._encabezado][validate._folio]);
                     documentsService.Save(rut, razon, int.Parse(dte), folio, JsonConvert.SerializeObject(item));// ADD DOCUMENT DB
                 }
                 catch (Exception ex)
@@ -77,6 +76,7 @@ class Process
             }
             else
             {
+                _log.Information(string.Format(Constants.ConsoleMessage.PROCESAR_DOCUMENTOS, _documents.Count));
                 foreach (Documento document in _documents)
                 {
                     try
@@ -100,14 +100,23 @@ class Process
                         if (response.Status == ResponseCarga.statusOK)
                         {
                             estado = Estado.EnviadoOK;
-                            response.Value.Result.Add(new JObject { { "Message", cargaOK }, { "Property", cargaOK } });
+                            response.Value.Result = new JArray() { new JObject { { "Message", cargaOK }, { "Property", cargaOK } } };
                             _logFile.Information(Formater(response));
                         }
                         else
                         {
                             estado = Estado.EnviadoConError;
-                            JArray result = responseCarga.Value.Result;
-                            response.Value.Result = result;
+                            JArray result = new JArray();
+                            if (responseCarga.Value.Type == JTokenType.String)
+                            {
+                                string error = (string)responseCarga.Value;
+                                response.Value.Result = new JArray() { new JObject { { "Message", error }, { "Property", error } } };
+                              //  response.Value.Result.Add(new JObject { { "Message", error }, { "Property", error } });
+                            }
+                            else
+                            {
+                                result = responseCarga.Value.Result;
+                            }
                             _logFile.Error(Formater(response));
                         }
                         documentsService.Update(document.Id, estado, JsonConvert.SerializeObject(response.Value.Result));
