@@ -106,16 +106,15 @@ class Process
                         else
                         {
                             estado = Estado.EnviadoConError;
-                            JArray result = new JArray();
                             if (responseCarga.Value.Type == JTokenType.String)
                             {
                                 string error = (string)responseCarga.Value;
                                 response.Value.Result = new JArray() { new JObject { { "Message", error }, { "Property", error } } };
-                              //  response.Value.Result.Add(new JObject { { "Message", error }, { "Property", error } });
+                                //  response.Value.Result.Add(new JObject { { "Message", error }, { "Property", error } });
                             }
                             else
                             {
-                                result = responseCarga.Value.Result;
+                                response.Value.Result = responseCarga.Value.Result;
                             }
                             _logFile.Error(Formater(response));
                         }

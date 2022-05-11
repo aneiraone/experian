@@ -34,8 +34,8 @@ class API2020Services
 
     public string Carga(Token resp, JObject document)
     {
-        RequestCargaDTE req = new RequestCargaDTE(document);
-        string stringPayload = JsonConvert.SerializeObject(req);
+      //  RequestCargaDTE req = new RequestCargaDTE(document);
+        string stringPayload = JsonConvert.SerializeObject(document);
         StringContent httpContent = new StringContent(stringPayload, Encoding.UTF8, Constants.ServiceRest.ContentType);
         httpContent.Headers.ContentType = new MediaTypeHeaderValue(Constants.ServiceRest.ContentType);
 
