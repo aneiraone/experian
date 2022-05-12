@@ -28,7 +28,7 @@ namespace Common
         private readonly string _emailPort = "EMAIL_PORT";
         private readonly string _emailTo = "EMAIL_TO";
 
-        private readonly string InvalidArgument = " Invalid Arguments Parametros {0}";
+        private readonly string InvalidArgument = "Invalid Arguments Parametro {0}";
 
         public Parametros() { }
         private static Parametros _instance;
@@ -91,10 +91,10 @@ namespace Common
                 throw new ArgumentException(string.Format(InvalidArgument, _usuarioEmpresa));
             }
 
-            if (!parametros.Exists(x => x.Llave == _identificadorEmpresa))
-            {
-                throw new ArgumentException(string.Format(InvalidArgument, _identificadorEmpresa));
-            }
+            //if (!parametros.Exists(x => x.Llave == _identificadorEmpresa))
+            //{
+            //    throw new ArgumentException(string.Format(InvalidArgument, _identificadorEmpresa));
+            //}
 
             if (!parametros.Exists(x => x.Llave == _nameExperian))
             {
@@ -149,7 +149,7 @@ namespace Common
 
             URLCarga = parametros.Find(x => x.Llave == _urlCarga).Valor;
             URLTokenApi2020 = parametros.Find(x => x.Llave == _urlToken).Valor;
-            IdentificadorEmpresa = parametros.Find(x => x.Llave == _identificadorEmpresa).Valor;
+            //IdentificadorEmpresa = parametros.Find(x => x.Llave == _identificadorEmpresa).Valor;
             UsuarioEmpresa = parametros.Find(x => x.Llave == _usuarioEmpresa).Valor;
             AutorizacionEmpresa = parametros.Find(x => x.Llave == _autorizacionEmpresa).Valor;
 
@@ -168,7 +168,7 @@ namespace Common
                 { _clientSecret ,ClientSecretExperian},
                 { _urlCarga, URLCarga },
                 { _urlToken, URLTokenApi2020},
-                { _identificadorEmpresa ,IdentificadorEmpresa},
+                //{ _identificadorEmpresa ,IdentificadorEmpresa},
                 { _usuarioEmpresa, UsuarioEmpresa},
                 { _emailHost ,EmailHost},
                 { _emailName ,EmailUser},

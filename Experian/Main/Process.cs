@@ -15,6 +15,7 @@ class Process
 {
     private Email email = new Email();
     private Serilog.Core.Logger _log = Logger.GetInstance()._Logger;
+    private Serilog.Core.Logger _logData = Logger.GetInstance()._LoggerData;
     private DocumentoService documentsService = new DocumentoService();
     private ParametroService parametersService = new ParametroService();
 
@@ -37,9 +38,10 @@ class Process
 
             ExperianServices experianServices = new ExperianServices();
             Token tokenExperian = experianServices.GenerateToken();
-            dynamic jsonResp = JsonConvert.DeserializeObject(experianServices.Data(tokenExperian));
-            validate.ResponseData(jsonResp);
-            JArray data = jsonResp[validate.payload];
+            dynamic responseData = JsonConvert.DeserializeObject(experianServices.Data(tokenExperian));
+            _logData.Information(JsonConvert.SerializeObject(responseData));
+            validate.ResponseData(responseData);
+            JArray data = responseData[validate.payload];
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_START);
             foreach (JObject item in data)
             {
@@ -47,8 +49,8 @@ class Process
                 {
                     validate.RequestDocument(item);
                     string dte = (string)item[validate._documento][validate._encabezado][validate._tipoDocumento];
-                    string rut = (string)item[validate._documento][validate._encabezado][validate._receptor][validate._rut];
-                    string razon = (string)item[validate._documento][validate._encabezado][validate._receptor][validate._razon];
+                    string rut = (string)item[validate._documento][validate._encabezado][validate._emisor][validate._rut];
+                    string razon = (string)item[validate._documento][validate._encabezado][validate._emisor][validate._razon];
                     int folio = int.Parse((string)item[validate._documento][validate._encabezado][validate._folio]);
                     documentsService.Save(rut, razon, int.Parse(dte), folio, JsonConvert.SerializeObject(item));// ADD DOCUMENT DB
                 }
@@ -64,8 +66,6 @@ class Process
             }
 
             API2020Services wsServices = new API2020Services();
-            Token token = wsServices.GenerateToken();
-
             Serilog.Core.Logger _logFile = Logger.GetInstance()._LoggerFile;
             //OBTIENE LOS DOCUMENTOS PENDIENTES DESDE LA BASE
             List<Documento> _documents = documentsService.GetPendientes();
@@ -77,14 +77,13 @@ class Process
             else
             {
                 _log.Information(string.Format(Constants.ConsoleMessage.PROCESAR_DOCUMENTOS, _documents.Count));
+                Token token = new Token();
+                string rutBefore = string.Empty;
                 foreach (Documento document in _documents)
                 {
                     try
                     {
-                        // RENUEVA TOKEN SI EXPIRO
-                        if (!token.ValidateToken(token))
-                        { token = wsServices.GenerateToken(); }
-
+                        Parametros.GetInstance().IdentificadorEmpresa = document.Rut.Split("-")[0];
                         ResponseCarga response = new ResponseCarga(
                             document.TipoDocumento.ToString(),
                             document.Rut,
@@ -92,9 +91,16 @@ class Process
                             document.Folio,
                             string.Empty
                         );
-                        JObject request = JObject.Parse(document.Data);
-                        dynamic responseCarga = JsonConvert.DeserializeObject(wsServices.Carga(token, request));
+
+                        if (rutBefore != document.Rut) //GENERA NUEVO TOKEN
+                        {token = wsServices.GenerateToken(); }
+                        // RENUEVA TOKEN SI EXPIRO
+                        if (!token.ValidateToken(token))
+                        { token = wsServices.GenerateToken(); }
+
+                        dynamic responseCarga = JsonConvert.DeserializeObject(wsServices.Carga(token, JObject.Parse(document.Data)));
                         validate.ResponseCarga(responseCarga);
+
                         response.Status = (string)responseCarga.Status;
                         Estado estado = document.Estado;
                         if (response.Status == ResponseCarga.statusOK)
@@ -110,7 +116,6 @@ class Process
                             {
                                 string error = (string)responseCarga.Value;
                                 response.Value.Result = new JArray() { new JObject { { "Message", error }, { "Property", error } } };
-                                //  response.Value.Result.Add(new JObject { { "Message", error }, { "Property", error } });
                             }
                             else
                             {

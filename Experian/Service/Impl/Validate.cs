@@ -6,7 +6,7 @@ public class Validate : IValidate
     
     public readonly string _documento = "Documento";
     public readonly string _encabezado = "Encabezado";
-    public readonly string _receptor = "Receptor";
+    public readonly string _emisor = "Emisor";
     public readonly string _rut = "RUT";
     public readonly string _razon = "RazonSocial";
     public readonly string _tipoDocumento = "TipoDocumento";
@@ -47,12 +47,12 @@ public class Validate : IValidate
         }
 
         JObject encabezado = (JObject)documento[_encabezado];
-        if (!encabezado.ContainsKey(_receptor))
+        if (!encabezado.ContainsKey(_emisor))
         {
-            throw new InvalidRequestException(_receptor);
+            throw new InvalidRequestException(_emisor);
         }
 
-        JObject receptor = (JObject)encabezado[_receptor];
+        JObject receptor = (JObject)encabezado[_emisor];
         if (!receptor.ContainsKey(_rut))
         {
             throw new InvalidRequestException(_rut);

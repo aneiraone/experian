@@ -36,7 +36,7 @@ namespace ExperianCore
         }
 
         public List<Documento> GetPendientes() {
-           return _context.Documento.Where(d => d.Estado == Estado.Pendiente).OrderByDescending(d => d.FechaCreacion).ToList();
+           return _context.Documento.Where(d => d.Estado == Estado.Pendiente).OrderByDescending(d => d.Rut).ToList();
         }
     }
 }

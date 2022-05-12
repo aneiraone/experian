@@ -59,7 +59,7 @@ class API2020Services
         dynamic tokenJson = JsonConvert.DeserializeObject(ObjResponse);
         if (!tokenJson.ContainsKey(_token))
         {
-            throw new InvalidRequestTokenException(string.Format("{0} {1}",_token, this.GetType().Name));
+            throw new InvalidRequestTokenException(string.Format("{0} - className {1}",_token, this.GetType().Name));
         }
         string token = (string)tokenJson[_token];
         return new Token(token);

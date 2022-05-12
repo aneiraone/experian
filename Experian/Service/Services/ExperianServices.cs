@@ -83,7 +83,7 @@ public class ExperianServices
     {
         dynamic tokenJson = JsonConvert.DeserializeObject(response);
         if (!tokenJson.ContainsKey(_accessToken)) {
-            throw new InvalidRequestTokenException(string.Format("{0} {1}", _accessToken, this.GetType().Name));
+            throw new InvalidRequestTokenException(string.Format("{0} - className {1}", _accessToken, this.GetType().Name));
         }
         int expired = 0;
         string token = (string)tokenJson[_accessToken];
