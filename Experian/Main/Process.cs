@@ -41,6 +41,7 @@ class Process
             dynamic responseData = JsonConvert.DeserializeObject(experianServices.Data(tokenExperian));
             _logData.Information(JsonConvert.SerializeObject(responseData));
             validate.ResponseData(responseData);
+
             JArray data = responseData[validate.payload];
             _log.Information(Constants.ConsoleMessage.ARCHIVOS_START);
             foreach (JObject item in data)
@@ -61,6 +62,7 @@ class Process
                         ex = ex.InnerException; //TIME OUT MYSQL
                     }
                     _log.Error(ex.Message);
+                    email.Send(ex.Message, true);
                     //return;
                 }
             }
