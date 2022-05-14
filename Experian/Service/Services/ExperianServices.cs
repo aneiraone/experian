@@ -49,8 +49,9 @@ public class ExperianServices
         {
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                return (response.StatusCode == HttpStatusCode.NotFound) ?
-                    Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLData : response.Content.ReadAsStringAsync().Result;
+                Exception ex = new Exception(response.StatusCode + " " + ((response.StatusCode == HttpStatusCode.NotFound) ?
+                   Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLData : response.Content.ReadAsStringAsync().Result));
+                throw ex;
             }
             return response.Content.ReadAsStringAsync().Result;
         }
