@@ -28,7 +28,7 @@ public class ExperianServices
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 Exception ex = new Exception(response.StatusCode + " " + ((response.StatusCode == HttpStatusCode.NotFound) ?
-                    Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLTokenExperian : response.Content.ReadAsStringAsync().Result));
+                    Constants.ExceptionMessage.URLNOVALIDA + Parametros.GetInstance().URLTokenExperian : string.Format("{0} - className {1}", response.Content.ReadAsStringAsync().Result, this.GetType().Name)));
                 throw ex;
             }
 
