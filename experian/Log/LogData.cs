@@ -19,7 +19,6 @@ public class LogData
     {
         try
         {
-            string name = GetNameFile();
             using (StreamWriter sw = new StreamWriter(pathData, true))
             {
                 sw.WriteLine(string.Format("{0} [Information] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), data));
@@ -31,11 +30,5 @@ public class LogData
             Console.WriteLine(e.Message);
             Console.ReadKey();
         }
-    }
-
-    private static string GetNameFile()
-    {
-        string nombre = "log_" + DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day + ".txt";
-        return nombre;
     }
 }
