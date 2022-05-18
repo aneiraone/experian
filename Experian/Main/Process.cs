@@ -15,7 +15,8 @@ class Process
 {
     private Email email = new Email();
     private Serilog.Core.Logger _log = Logger.GetInstance()._Logger;
-    private Serilog.Core.Logger _logData = Logger.GetInstance()._LoggerData;
+    LogData _logData = LogData.GetInstance();
+    // private Serilog.Core.Logger _logData = Logger.GetInstance()._LoggerData;
     private DocumentoService documentsService = new DocumentoService();
     private ParametroService parametersService = new ParametroService();
 
@@ -38,8 +39,9 @@ class Process
 
             ExperianServices experianServices = new ExperianServices();
             Token tokenExperian = experianServices.GenerateToken();
-            dynamic responseData = JsonConvert.DeserializeObject(experianServices.Data(tokenExperian));
-            _logData.Information(JsonConvert.SerializeObject(responseData));
+            string sData = experianServices.Data(tokenExperian);
+            _logData.Generar(FormaterData(sData));
+            dynamic responseData = JsonConvert.DeserializeObject(sData);
             validate.ResponseData(responseData);
 
             JArray data = responseData[validate.payload];
@@ -95,7 +97,7 @@ class Process
                         );
 
                         if (rutBefore != document.Rut) //GENERA NUEVO TOKEN
-                        {token = wsServices.GenerateToken(); }
+                        { token = wsServices.GenerateToken(); }
                         // RENUEVA TOKEN SI EXPIRO
                         if (!token.ValidateToken(token))
                         { token = wsServices.GenerateToken(); }
@@ -200,5 +202,11 @@ class Process
     private string Formater(ResponseCarga response)
     {
         return JsonConvert.SerializeObject(response);
+    }
+
+    private string FormaterData(string data) {
+        string replaceWith = "";
+        string removedBreaks = data.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
+        return removedBreaks;
     }
 }

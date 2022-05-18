@@ -6,7 +6,7 @@ public class Logger
 {
     public Serilog.Core.Logger _Logger;
     public Serilog.Core.Logger _LoggerFile;
-    public Serilog.Core.Logger _LoggerData;
+    //public Serilog.Core.Logger _LoggerData;
     private Logger()
     {
         string path = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "log",
@@ -20,7 +20,7 @@ public class Logger
 
         _Logger = new LoggerConfiguration().WriteTo.Console().WriteTo.File(path).CreateLogger();
         _LoggerFile = new LoggerConfiguration().WriteTo.File(pathDocuments).CreateLogger();
-        _LoggerData = new LoggerConfiguration().WriteTo.File(pathData).CreateLogger();
+       // _LoggerData = new LoggerConfiguration().WriteTo.File(pathData).CreateLogger();
     }
 
     private static Logger _instance;
