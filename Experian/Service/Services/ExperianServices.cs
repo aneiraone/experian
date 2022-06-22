@@ -41,11 +41,8 @@ public class ExperianServices
         HttpClient client = new HttpClient();
         client.Timeout = TimeSpan.FromSeconds(Parametros.GetInstance().TimeOut);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resp.token);
-        //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL"));
-        string url = "https://uat-uk-api.experian.com/eitsgcss/oracletodbnet/v1/transactions";
-        //url = Parametros.GetInstance().URLData;
-      
-        using (var response = client.GetAsync(url).Result)
+        //client.BaseAddress = new Uri(ConfigurationManager.AppSettings.Get("URL")); 
+        using (var response = client.GetAsync(Parametros.GetInstance().URLData).Result)
         {
             if (response.StatusCode != HttpStatusCode.OK)
             {
