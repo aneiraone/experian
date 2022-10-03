@@ -40,7 +40,7 @@ class Process
             ExperianServices experianServices = new ExperianServices();
             Token tokenExperian = experianServices.GenerateToken();
             string sData = experianServices.Data(tokenExperian);
-            _logData.Generar(FormaterData(sData));
+            _logData.Generar(sData);
             dynamic responseData = JsonConvert.DeserializeObject(sData);
             validate.ResponseData(responseData);
 
@@ -107,15 +107,15 @@ class Process
 
                         response.Status = (string)responseCarga.Status;
                         Estado estado = document.Estado;
+                        estado = response.Status == ResponseCarga.statusOK ? Estado.EnviadoOK: Estado.EnviadoConError;
+                        documentsService.Update(document.Id, estado, string.Empty); //presetea el estado por si llegara a caerse
                         if (response.Status == ResponseCarga.statusOK)
                         {
-                            estado = Estado.EnviadoOK;
                             response.Value.Result = new JArray() { new JObject { { "Message", cargaOK }, { "Property", cargaOK } } };
                             _logFile.Information(Formater(response));
                         }
                         else
                         {
-                            estado = Estado.EnviadoConError;
                             if (responseCarga.Value.Type == JTokenType.String)
                             {
                                 string error = (string)responseCarga.Value;
@@ -202,11 +202,5 @@ class Process
     private string Formater(ResponseCarga response)
     {
         return JsonConvert.SerializeObject(response);
-    }
-
-    private string FormaterData(string data) {
-        string replaceWith = "";
-        string removedBreaks = data.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
-        return removedBreaks;
     }
 }

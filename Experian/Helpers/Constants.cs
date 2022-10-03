@@ -10,6 +10,7 @@
         public const string PROCESAR_DOCUMENTOS = "Existen {0} Documentos para procesar";
         public const string DOCUMENTO_OK = "Documento Enviado sin Errores";
         public const string DOCUMENTO_ERROR = "Documento Enviado con Errores";
+        public const string SEND_MAIL = "Generando Envio correo para: {0}";
     }
 
     public class ServiceRest

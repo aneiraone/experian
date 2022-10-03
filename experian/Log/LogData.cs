@@ -19,9 +19,11 @@ public class LogData
     {
         try
         {
+            string replaceWith = "";
+            string dataClean = data.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
             using (StreamWriter sw = new StreamWriter(pathData, true))
             {
-                sw.WriteLine(string.Format("{0} [Information] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), data));
+                sw.WriteLine(string.Format("{0} [Information] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), dataClean));
                 //sw.WriteLine("");
             }
         }

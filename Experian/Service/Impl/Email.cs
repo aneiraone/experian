@@ -10,6 +10,7 @@ public class Email : IEmail
     readonly static string _process_error = "con errores";
     readonly static string _subject_ok = "Procesado";
     readonly static string _subject_error = "Error";
+    private Serilog.Core.Logger _log = Logger.GetInstance()._Logger;
     public bool Send(ResponseCarga data)
     {
         if (!AppSettings.GetInstance().Email.Smtp.Active) { return false; }//no manda correo si no carga base
@@ -71,7 +72,8 @@ public class Email : IEmail
 
     #region "CONFIG EMAIL"
     private bool Send(string from, string _to, string subject, string body)
-    {
+    {      
+        _log.Information(string.Format(Constants.ConsoleMessage.SEND_MAIL, _to));
         SmtpClient smtpClient = Config;
         MailMessage message = new MailMessage(from, _to);
         message.Subject = subject;
